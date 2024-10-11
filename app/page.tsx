@@ -1,101 +1,173 @@
-import Image from "next/image";
+"use client";
+
+import { ERC721_ADDRESS } from "@/lib/constants";
+import { Button, Divider, Input } from "@nextui-org/react";
+import { useLogin, usePrivy } from "@privy-io/react-auth";
+import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
+import { useState } from "react";
+import { baseSepolia } from "viem/chains";
+import { encodeFunctionData } from "viem";
+import { erc721Abi } from "@/lib/erc721Abi";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const { ready, authenticated, logout, user } = usePrivy();
+  const { login } = useLogin();
+  const { client } = useSmartWallets();
+  const [isLoadingNft, setIsLoadingNft] = useState(false);
+  const [recipientNftAddress, setRecipientNftAddress] = useState("");
+  const [errorMessageNft, setErrorMessageNft] = useState("");
+  const [nftTx, setNftTx] = useState("");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const mintNftTransaction = async () => {
+    setIsLoadingNft(true);
+    setNftTx("");
+    if (!client) {
+      console.error("No smart account client found");
+      return;
+    }
+
+    setErrorMessageNft("");
+
+    try {
+      const tx = await client.sendTransaction({
+        chain: baseSepolia,
+        to: ERC721_ADDRESS,
+        value: BigInt(0),
+        data: encodeFunctionData({
+          abi: erc721Abi,
+          functionName: "safeMint",
+          args: [recipientNftAddress as `0x${string}`],
+        }),
+      });
+      console.log("tx", tx);
+      setNftTx(tx);
+    } catch (error) {
+      console.error("Transaction failed:", error);
+      setErrorMessageNft("Transaction failed. Please try again.");
+    }
+    setIsLoadingNft(false);
+  };
+
+  const handleLogout = () => {
+    // Reset all input fields
+    setIsLoadingNft(false);
+    setRecipientNftAddress("");
+    setErrorMessageNft("");
+    setNftTx("");
+
+    logout();
+  };
+
+  return (
+    <div className="min-h-screen min-w-screen">
+      <div className="grid grid-cols-1 lg:grid-cols-4 h-screen text-black">
+        <div className=" col-span-2 bg-gray-50 p-12 h-full flex flex-col lg:flex-row items-center justify-center space-y-2">
+          <div className="flex flex-col justify-evenly h-full">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2"></div>
+              <div className="text-3xl lg:text-6xl font-black">
+                Privy Tutorial
+              </div>
+              <div className="text-md lg:text-lg">Your Privy Tutorial App</div>
+              {ready && !authenticated && (
+                <Button
+                  radius="sm"
+                  color="secondary"
+                  className="w-4 text-white"
+                  onClick={() => login()}
+                >
+                  Login
+                </Button>
+              )}
+              {ready && authenticated && (
+                <Button
+                  radius="sm"
+                  color="danger"
+                  className="w-4"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="col-span-2 bg-white h-full p-12 lg:p-48 flex flex-col lg:flex-row items-center justify-center w-full space-y-4">
+          {!user && <div className="lg:w-1/2"></div>}
+          {user && (
+            <div className="lg:flex lg:flex-row justify-center w-full">
+              <div className="flex flex-col gap-4 w-full">
+                <div className="flex flex-col gap-2 w-full">
+                  <div className="flex flex-col gap-2">
+                    <div className="text-base font-semibold">Wallets</div>
+                    <div className="flex items-center">
+                      <Input
+                        size="sm"
+                        value={user.wallet?.address}
+                        label="Embedded Wallet"
+                        isReadOnly
+                        className="flex-grow"
+                      />
+                    </div>
+                    <div className="flex items-center">
+                      <Input
+                        size="sm"
+                        value={client?.account.address}
+                        label="Smart Wallet"
+                        isReadOnly
+                        className="flex-grow"
+                      />
+                    </div>
+                    <Divider />
+                    <div className="flex flex-col gap-2">
+                      <div className="text-base font-semibold">Mint NFT</div>
+                      <div className="flex items-center">
+                        <Input
+                          size="sm"
+                          value={recipientNftAddress}
+                          onChange={(e) =>
+                            setRecipientNftAddress(e.target.value)
+                          }
+                          placeholder="Enter recipient address"
+                          label="Recipient Address"
+                        />
+                      </div>
+                      <Button
+                        radius="sm"
+                        color="secondary"
+                        className="w-1/5"
+                        onClick={() => mintNftTransaction()}
+                        isLoading={isLoadingNft}
+                        isDisabled={!recipientNftAddress}
+                      >
+                        Mint NFT
+                      </Button>
+                      {errorMessageNft && (
+                        <div className="text-red-500 text-xs text-center mt-1">
+                          {errorMessageNft}
+                        </div>
+                      )}
+                      {nftTx && (
+                        <div className="flex flex-col">
+                          <div className="flex items-center">
+                            <Input
+                              size="sm"
+                              value={nftTx}
+                              label="NFT Minting Transaction"
+                              isReadOnly
+                              className="flex-grow"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

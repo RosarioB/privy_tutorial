@@ -1,3 +1,10 @@
+#Privy_tutorial application
+
+Create a file `.env.local` in the root with:
+
+`NEXT_PUBLIC_PRIVY_APP_ID=<yout_privy_app_id>`
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
