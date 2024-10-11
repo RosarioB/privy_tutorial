@@ -1,6 +1,6 @@
-#Privy_tutorial application
+# Privy_tutorial application
 
-![alt text](https://github.com/RosarioB/location-search/blob/main/github_images/privy_tutorial.gif?raw=true)
+![alt text](https://github.com/RosarioB/privy_tutorial/blob/main/github_images/privy_tutorial.gif?raw=true)
 
 Create a file `.env.local` in the root with:
 
