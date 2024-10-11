@@ -1,5 +1,7 @@
 #Privy_tutorial application
 
+![alt text](https://github.com/RosarioB/location-search/blob/main/github_images/privy_tutorial.gif?raw=true)
+
 Create a file `.env.local` in the root with:
 
 `NEXT_PUBLIC_PRIVY_APP_ID=<yout_privy_app_id>`
